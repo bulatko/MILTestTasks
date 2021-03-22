@@ -1,6 +1,19 @@
-# Document Semantic Segmentation Task
+# MILTestTask - OCR
 
- 
+Мы предлагаем обучить модель для решения задачи Layout Detection на нашем [датасете](https://drive.google.com/file/d/1euOGyo8jzP-iJF_WMuwTtBzrRsvQ4h3c/view?usp=sharing).  
+В архиве есть папка `data` с изображениями, и 2 json файла в [формате COCO для задачи detection](https://cocodataset.org/#format-data), c train и test частями соответственно. 
+Данные для сегментации приведены в формате полигонов.
+  
+Для работы с форматом COCO рекомендуется использовать библиотеку `pycocotools`.
+
+Код необходимый для получения результатов обучения модели нужно приложить в форке этого репозитория.  
+Отчет по процессу решения и итоговым результатам желательно оформить как jupyter ноутбук с метриками mean IoU для тестовой и трейновой частей.
+
+Перед решением рекомендуется взглянуть на датасет. 
+В качестве базовых решений предлагаем ознакомиться со статьями [раз](https://arxiv.org/pdf/1512.02325.pdf) и [два](https://link.springer.com/chapter/10.1007/978-3-319-95957-3_30).
+
+
+# Solution ​
 
 ## Preprocessing
 
@@ -8,30 +21,30 @@
 
 ```python
 def polygon_to_mask(xy, w, h, c, normed_dists=True):
-  xy = np.array(xy)
-  xy = np.array(xy[0])
-  if normed_dists:
-    xy[::2] *= w
-    xy[1::2] *= h
-  xy = xy.reshape(-1, 2)
-  xy = [tuple(a) for a in xy]
-  img = Image.new('L', (w, h), 0)
-  if len(xy) < 2:
-    mask = np.array(img)
-    return mask
+ ​xy = np.array(xy)
+ ​xy = np.array(xy[0])
+ ​if normed_dists:
+   ​xy[::2] *= w
+   ​xy[1::2] *= h
+ ​xy = xy.reshape(-1, 2)
+ ​xy = [tuple(a) for a in xy]
+ ​img = Image.new('L', (w, h), 0)
+ ​if len(xy) < 2:
+   ​mask = np.array(img)
+   ​return mask
 
-  ImageDraw.Draw(img).polygon(xy, outline=c, fill=c)
-  mask = np.array(img)
-  return mask
+ ​ImageDraw.Draw(img).polygon(xy, outline=c, fill=c)
+ ​mask = np.array(img)
+ ​return mask
 
 
 def get_mask(image, annots, normed_dists=True):
-  w, h = image['width'], image['height']
-  mask = np.zeros((h, w))
-  for a in annots:
-    data = polygon_to_mask(a['segmentation'], w, h, a['category_id'], normed_dists)
-    mask = np.where(data, a['category_id'], mask)
-  return mask
+ ​w, h = image['width'], image['height']
+ ​mask = np.zeros((h, w))
+ ​for a in annots:
+   ​data = polygon_to_mask(a['segmentation'], w, h, a['category_id'], normed_dists)
+   ​mask = np.where(data, a['category_id'], mask)
+ ​return mask
 
 ```
 
@@ -46,7 +59,7 @@ Augmentations didn't helped to train model.
 Resizing to 256, 256
 
 Normalization to ```mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]```
+                                ​std=[0.229, 0.224, 0.225]```
 
 
 
@@ -68,4 +81,9 @@ Best encoder was **EfficientNetB7**
 
 ## Results
 
-I got 95.61% mean IOU on test dataset with best model and best augmentations combination (no augmentations)
+| Train mIOU | Test mIOU |
+| --- | --- |
+| 98.3761% | 95.6109% |
+
+
+I got 95.61% mean IOU on test dataset with best model and best augmentations combination (no augmentations
